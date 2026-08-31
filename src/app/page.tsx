@@ -1,0 +1,206 @@
+import Link from "next/link";
+import { getSession } from "@/lib/session";
+import {
+  Shield,
+  Key,
+  Database,
+  ArrowRight,
+  Sparkles,
+  AlertCircle,
+  ExternalLink,
+  Layers,
+  CheckCircle2,
+  Terminal,
+  Code2,
+  ShieldAlert,
+} from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+interface HomePageProps {
+  searchParams: {
+    error?: string;
+    error_description?: string;
+    message?: string;
+  };
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const session = await getSession();
+
+  const errorMessage = searchParams.error
+    ? searchParams.message ||
+      searchParams.error_description ||
+      (searchParams.error === "missing_credentials"
+        ? "DISCORD_CLIENT_ID または DISCORD_CLIENT_SECRET が環境変数に設定されていません。.env.local を作成して設定してください。"
+        : `ログイン処理中にエラーが発生しました (${searchParams.error})`)
+    : null;
+
+  return (
+    <div className="space-y-12 py-4 max-w-4xl mx-auto">
+      {/* エラーアラート */}
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-red-950/60 border border-red-800/60 text-red-200 flex items-start gap-3 shadow-lg">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-semibold">認証エラーが発生しました</p>
+            <p className="text-red-300 mt-1">{errorMessage}</p>
+          </div>
+        </div>
+      )}
+
+      {/* サードパーティ製ツールの明示バナー */}
+      <div className="p-3.5 rounded-xl bg-discord-darkest/90 border border-amber-500/30 text-amber-200/90 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span>
+            <strong>サードパーティ開発者向けツール:</strong> 本ツールは Discord API (OAuth2 v10) の属性取得挙動を検証するための非公式開発者用ユーティリティです。
+          </span>
+        </div>
+      </div>
+
+      {/* ヒーローセクション */}
+      <section className="text-center space-y-6 pt-2">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+          <Terminal className="w-4 h-4 text-indigo-400" />
+          <span>3rd-Party Developer Utility • Discord User Identity Inspector</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Discord OAuth2 API<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-pink-400">
+            ユーザー属性インスペクター
+          </span>
+        </h1>
+
+        <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          OAuth2 認可フローを通じて Discord API から返却されるプロフィール情報、アバター、Nitro種別、フラグバッジ、所属サーバー、連携アカウントなどの全属性データをリアルタイムにデバッグ・検証できます。
+        </p>
+
+        {/* アクションボタン */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <a
+            href="/api/auth/login"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-base shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] border border-white/10"
+          >
+            <Key className="w-5 h-5 text-indigo-200" />
+            <span>Discord アカウントでログイン</span>
+            <ArrowRight className="w-4 h-4" />
+          </a>
+
+          {/* デモモード体験ボタン */}
+          <a
+            href="/api/auth/demo"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-discord-light hover:bg-discord-lighter text-gray-200 hover:text-white font-semibold text-base border border-white/10 transition-all hover:scale-[1.02]"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-400" />
+            <span>デモデータで画面を確認</span>
+          </a>
+        </div>
+
+        {session && (
+          <div className="pt-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:underline font-medium"
+            >
+              現在ログイン中です (ユーザー: {session.user.global_name || session.user.username}) → ダッシュボードを開く
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* 取得可能な属性のハイライト */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="p-5 rounded-2xl bg-discord-darkest/60 border border-white/10 space-y-3">
+          <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <Key className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-white">基本プロフィール属性</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            ユーザーID、ユーザー名、グローバル表示名、アバター、バナー画像、アクセントカラー、言語ロケール、メールアドレス、2FA認証状態など
+          </p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-discord-darkest/60 border border-white/10 space-y-3">
+          <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-white">フラグ & Nitro バッジ</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            Active Developer、HypeSquad、Early Supporter、Bug Hunter、Staff などのアカウントフラグ(Flags)をビット解析してバッジ化
+          </p>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-discord-darkest/60 border border-white/10 space-y-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <Database className="w-5 h-5" />
+          </div>
+          <h3 className="text-base font-bold text-white">拡張属性 & 生JSON</h3>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            所属サーバー一覧 (Guilds)、外部連携アカウント (Connections: GitHub/Steam/Spotify等)、およびDiscord APIが返却する完全な生JSON
+          </p>
+        </div>
+      </section>
+
+      {/* セットアップガイド */}
+      <section className="p-6 rounded-2xl bg-discord-darkest/80 border border-white/10 space-y-4">
+        <div className="flex items-center gap-2 text-white font-bold text-lg">
+          <Layers className="w-5 h-5 text-indigo-400" />
+          <span>開発者ポータル設定ガイド (OAuth2 Setup)</span>
+        </div>
+
+        <div className="space-y-3 text-xs text-gray-300">
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-white">1. アプリケーションの作成: </span>
+              <a
+                href="https://discord.com/developers/applications"
+                target="_blank"
+                rel="noreferrer"
+                className="text-indigo-400 hover:underline inline-flex items-center gap-1"
+              >
+                Discord Developer Portal <ExternalLink className="w-3 h-3" />
+              </a>
+              にアクセスし、「New Application」から開発用アプリを作成します。
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-white">2. Redirects の登録: </span>
+              左メニュー「OAuth2」を開き、「Redirects」に以下のURLを追加して「Save Changes」を押します：
+              <div className="mt-1 bg-discord-light px-3 py-1.5 rounded font-mono text-emerald-300 select-all inline-block">
+                http://localhost:3000/api/auth/callback
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-white">3. Client ID & Secret の取得: </span>
+              「Client ID」をコピーし、「Client Secret」を「Reset Secret」で生成してコピーします。
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-semibold text-white">4. .env.local ファイルの作成: </span>
+              プロジェクトルートに <code className="text-indigo-400">.env.local</code> を作成し、以下を設定します：
+              <pre className="mt-2 p-3 bg-discord-light rounded font-mono text-[11px] text-gray-200 overflow-x-auto">
+{`DISCORD_CLIENT_ID=あなたのクライアントID
+DISCORD_CLIENT_SECRET=あなたのクライアントシークレット
+DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/callback
+SESSION_SECRET=32文字以上のランダムな秘密鍵文字列`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
