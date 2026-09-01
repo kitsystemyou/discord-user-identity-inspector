@@ -26,8 +26,8 @@ export default function RootLayout({
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-base tracking-tight">User Identity Inspector</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium">
+                  <span className="text-base font-bold tracking-tight">User Identity Inspector</span>
+                  <span className="text-[10px] leading-none px-1.5 py-[2px] rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium inline-flex items-center">
                     3rd Party DevTool
                   </span>
                 </div>
