@@ -64,7 +64,7 @@ export default async function DashboardPage() {
           <span>User Identity Inspector (非公式・開発者向け)</span>
         </div>
         <Link href="/" className="text-indigo-400 hover:underline text-xs">
-          ← トップ・ガイドへ戻る
+          ← トップへ戻る
         </Link>
       </div>
       {/* デモモード告知バナー */}
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
             href="/"
             className="px-3 py-1 bg-amber-900/80 hover:bg-amber-800 rounded text-amber-100 font-medium transition-colors"
           >
-            設定案内を見る
+            トップへ戻る
           </Link>
         </div>
       )}

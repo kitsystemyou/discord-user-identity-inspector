@@ -1,17 +1,12 @@
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import {
-  Shield,
   Key,
   Database,
   ArrowRight,
   Sparkles,
   AlertCircle,
-  ExternalLink,
-  Layers,
-  CheckCircle2,
   Terminal,
-  Code2,
   ShieldAlert,
 } from "lucide-react";
 
@@ -140,65 +135,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <p className="text-xs text-gray-400 leading-relaxed">
             所属サーバー一覧 (Guilds)、外部連携アカウント (Connections: GitHub/Steam/Spotify等)、およびDiscord APIが返却する完全な生JSON
           </p>
-        </div>
-      </section>
-
-      {/* セットアップガイド */}
-      <section className="p-6 rounded-2xl bg-discord-darkest/80 border border-white/10 space-y-4">
-        <div className="flex items-center gap-2 text-white font-bold text-lg">
-          <Layers className="w-5 h-5 text-indigo-400" />
-          <span>開発者ポータル設定ガイド (OAuth2 Setup)</span>
-        </div>
-
-        <div className="space-y-3 text-xs text-gray-300">
-          <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-white">1. アプリケーションの作成: </span>
-              <a
-                href="https://discord.com/developers/applications"
-                target="_blank"
-                rel="noreferrer"
-                className="text-indigo-400 hover:underline inline-flex items-center gap-1"
-              >
-                Discord Developer Portal <ExternalLink className="w-3 h-3" />
-              </a>
-              にアクセスし、「New Application」から開発用アプリを作成します。
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-white">2. Redirects の登録: </span>
-              左メニュー「OAuth2」を開き、「Redirects」に以下のURLを追加して「Save Changes」を押します：
-              <div className="mt-1 bg-discord-light px-3 py-1.5 rounded font-mono text-emerald-300 select-all inline-block">
-                http://localhost:3000/api/auth/callback
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-white">3. Client ID & Secret の取得: </span>
-              「Client ID」をコピーし、「Client Secret」を「Reset Secret」で生成してコピーします。
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-white">4. .env.local ファイルの作成: </span>
-              プロジェクトルートに <code className="text-indigo-400">.env.local</code> を作成し、以下を設定します：
-              <pre className="mt-2 p-3 bg-discord-light rounded font-mono text-[11px] text-gray-200 overflow-x-auto">
-{`DISCORD_CLIENT_ID=あなたのクライアントID
-DISCORD_CLIENT_SECRET=あなたのクライアントシークレット
-DISCORD_REDIRECT_URI=http://localhost:3000/api/auth/callback
-SESSION_SECRET=32文字以上のランダムな秘密鍵文字列`}
-              </pre>
-            </div>
-          </div>
         </div>
       </section>
     </div>
