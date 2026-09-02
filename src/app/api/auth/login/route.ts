@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // リダイレクトレスポンスを作成し、直接 state Cookie を確実に設定
     const response = NextResponse.redirect(authUrl);
-    return applyStateToResponse(response, state, request);
+    return applyStateToResponse(response, state);
   } catch (error) {
     console.error("Login redirect error:", error);
     return NextResponse.redirect(`${baseUrl}/?error=oauth_init_failed`);

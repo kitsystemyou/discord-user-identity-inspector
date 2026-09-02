@@ -8,5 +8,5 @@ export async function GET(request: NextRequest) {
   const mockData = getMockUserData();
   const baseUrl = getBaseUrl(request);
   const response = NextResponse.redirect(`${baseUrl}/dashboard`);
-  return await applySessionToResponse(response, mockData, request);
+  return await applySessionToResponse(response, mockData);
 }

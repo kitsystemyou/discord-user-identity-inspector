@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  exchangeCodeForToken,
-  fetchDiscordUser,
-  fetchDiscordGuilds,
-  fetchDiscordConnections,
-} from "@/lib/discord";
-import {
-  applySessionToResponse,
-  verifyAndClearStateFromRequest,
-  getBaseUrl,
-} from "@/lib/session";
+import { exchangeCodeForToken, fetchDiscordUser } from "@/lib/discord";
+import { applySessionToResponse, getBaseUrl } from "@/lib/session";
 import { UserSessionData } from "@/types/discord";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/?error=missing_code_or_state`);
   }
 
-  // 成功時/失敗時どちらでも state Cookie を確実に消去できるようにレスポンスオブジェクトを準備
+  // エラーレスポンス生成ヘルパー
   const errorResponse = (errKey: string, message?: string) => {
     const url = new URL(`${baseUrl}/`);
     url.searchParams.set("error", errKey);
@@ -49,11 +40,9 @@ export async function GET(request: NextRequest) {
   };
 
   // CSRF state の検証
-  // state が一致しない場合（In-Appブラウザ等のCookie脱落時でも、デバッグしやすいように）
   const storedState = request.cookies.get("discord_oauth_state")?.value;
   if (!storedState || storedState !== state) {
     console.warn(`CSRF state mismatch or missing. Stored: ${storedState}, Received: ${state}`);
-    // state が存在しなかった場合のエラーメッセージ
     return errorResponse(
       "invalid_csrf_state",
       "セッション検証用Stateが一致しませんでした。ブラウザのCookie設定をご確認ください。"
@@ -84,7 +73,7 @@ export async function GET(request: NextRequest) {
     const redirectResponse = NextResponse.redirect(`${baseUrl}/dashboard`);
     redirectResponse.cookies.delete("discord_oauth_state");
 
-    return await applySessionToResponse(redirectResponse, sessionData, request);
+    return await applySessionToResponse(redirectResponse, sessionData);
   } catch (err: unknown) {
     console.error("Failed to process OAuth callback:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
