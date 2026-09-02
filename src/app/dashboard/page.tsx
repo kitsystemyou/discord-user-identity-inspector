@@ -4,6 +4,8 @@ import {
   getBannerUrl,
   formatAccentColor,
   parseUserFlags,
+  fetchDiscordGuilds,
+  fetchDiscordConnections,
 } from "@/lib/discord";
 import { PREMIUM_TYPE_LABELS } from "@/lib/constants";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -40,7 +42,20 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  const { user, guilds, connections, tokenMeta, fetchedAt, isDemo } = session;
+  const { user, tokenMeta, fetchedAt, isDemo, accessToken } = session;
+
+  // guilds と connections のオンデマンド取得 (Cookie 4KB上限回避のため)
+  let guilds = session.guilds;
+  let connections = session.connections;
+
+  if (accessToken && !isDemo) {
+    if (tokenMeta.scope.includes("guilds") && !guilds) {
+      guilds = await fetchDiscordGuilds(accessToken);
+    }
+    if (tokenMeta.scope.includes("connections") && !connections) {
+      connections = await fetchDiscordConnections(accessToken);
+    }
+  }
 
   const bannerUrl = getBannerUrl(user);
   const hexAccentColor = formatAccentColor(user.accent_color);

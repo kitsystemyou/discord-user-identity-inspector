@@ -16,9 +16,14 @@ import {
 /**
  * Discord OAuth2 認可URLを構築する
  */
-export function getDiscordOAuthUrl(state: string, customScopes?: string[]): string {
+export function getDiscordOAuthUrl(
+  state: string,
+  customScopes?: string[],
+  customRedirectUri?: string
+): string {
   const clientId = process.env.DISCORD_CLIENT_ID;
-  const redirectUri = process.env.DISCORD_REDIRECT_URI || "http://localhost:3000/api/auth/callback";
+  const redirectUri =
+    customRedirectUri || process.env.DISCORD_REDIRECT_URI || "http://localhost:3000/api/auth/callback";
 
   if (!clientId) {
     throw new Error("DISCORD_CLIENT_ID is not configured in environment variables.");

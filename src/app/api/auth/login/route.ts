@@ -1,31 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDiscordOAuthUrl } from "@/lib/discord";
-import { saveOAuthState } from "@/lib/session";
+import { applyStateToResponse, getBaseUrl } from "@/lib/session";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const baseUrl = getBaseUrl(request);
+
   try {
     const clientId = process.env.DISCORD_CLIENT_ID;
     if (!clientId) {
-      return NextResponse.redirect(
-        new URL("/?error=missing_credentials", request.url)
-      );
+      return NextResponse.redirect(`${baseUrl}/?error=missing_credentials`);
     }
 
     // CSRF対策用のランダムな state を生成
     const state = crypto.randomBytes(24).toString("hex");
-    await saveOAuthState(state);
 
     // Discord OAuth2 認可URLを構築
     const authUrl = getDiscordOAuthUrl(state);
 
-    return NextResponse.redirect(authUrl);
+    // リダイレクトレスポンスを作成し、直接 state Cookie を確実に設定
+    const response = NextResponse.redirect(authUrl);
+    return applyStateToResponse(response, state, request);
   } catch (error) {
     console.error("Login redirect error:", error);
-    return NextResponse.redirect(
-      new URL("/?error=oauth_init_failed", request.url)
-    );
+    return NextResponse.redirect(`${baseUrl}/?error=oauth_init_failed`);
   }
 }

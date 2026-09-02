@@ -67,6 +67,7 @@ export interface UserSessionData {
   user: DiscordUser;
   guilds?: DiscordGuild[];
   connections?: DiscordConnection[];
+  accessToken?: string;
   tokenMeta: {
     token_type: string;
     expires_at: number;

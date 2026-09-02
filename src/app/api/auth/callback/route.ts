@@ -5,7 +5,11 @@ import {
   fetchDiscordGuilds,
   fetchDiscordConnections,
 } from "@/lib/discord";
-import { saveSession, verifyAndClearOAuthState } from "@/lib/session";
+import {
+  applySessionToResponse,
+  verifyAndClearStateFromRequest,
+  getBaseUrl,
+} from "@/lib/session";
 import { UserSessionData } from "@/types/discord";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +21,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
-  const baseUrl = new URL(request.url).origin;
+  const baseUrl = getBaseUrl(request);
 
   // Discord 側で拒否またはエラーが発生した場合
   if (error) {
@@ -34,10 +38,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/?error=missing_code_or_state`);
   }
 
+  // 成功時/失敗時どちらでも state Cookie を確実に消去できるようにレスポンスオブジェクトを準備
+  const errorResponse = (errKey: string, message?: string) => {
+    const url = new URL(`${baseUrl}/`);
+    url.searchParams.set("error", errKey);
+    if (message) url.searchParams.set("message", message);
+    const res = NextResponse.redirect(url.toString());
+    res.cookies.delete("discord_oauth_state");
+    return res;
+  };
+
   // CSRF state の検証
-  const isValidState = await verifyAndClearOAuthState(state);
-  if (!isValidState) {
-    return NextResponse.redirect(`${baseUrl}/?error=invalid_csrf_state`);
+  // state が一致しない場合（In-Appブラウザ等のCookie脱落時でも、デバッグしやすいように）
+  const storedState = request.cookies.get("discord_oauth_state")?.value;
+  if (!storedState || storedState !== state) {
+    console.warn(`CSRF state mismatch or missing. Stored: ${storedState}, Received: ${state}`);
+    // state が存在しなかった場合のエラーメッセージ
+    return errorResponse(
+      "invalid_csrf_state",
+      "セッション検証用Stateが一致しませんでした。ブラウザのCookie設定をご確認ください。"
+    );
   }
 
   try {
@@ -47,23 +67,10 @@ export async function GET(request: NextRequest) {
     // 2. ユーザー属性情報 (@me) の取得
     const user = await fetchDiscordUser(tokenData.access_token);
 
-    // 3. 所属サーバー一覧 (guilds) の取得（スコープに含まれている場合）
-    let guilds = undefined;
-    if (tokenData.scope.includes("guilds")) {
-      guilds = await fetchDiscordGuilds(tokenData.access_token);
-    }
-
-    // 4. 連携アカウント一覧 (connections) の取得（スコープに含まれている場合）
-    let connections = undefined;
-    if (tokenData.scope.includes("connections")) {
-      connections = await fetchDiscordConnections(tokenData.access_token);
-    }
-
-    // 5. セッションデータ作成と保存
+    // 3. セッションデータ作成 (Cookie 4KB制限を防ぐためaccessTokenを保持)
     const sessionData: UserSessionData = {
       user,
-      guilds,
-      connections,
+      accessToken: tokenData.access_token,
       tokenMeta: {
         token_type: tokenData.token_type,
         expires_at: Date.now() + tokenData.expires_in * 1000,
@@ -73,15 +80,14 @@ export async function GET(request: NextRequest) {
       isDemo: false,
     };
 
-    await saveSession(sessionData);
+    // 4. ダッシュボードへのリダイレクトレスポンスを作成し、直接セッションCookieを書き込む
+    const redirectResponse = NextResponse.redirect(`${baseUrl}/dashboard`);
+    redirectResponse.cookies.delete("discord_oauth_state");
 
-    // ダッシュボードへリダイレクト
-    return NextResponse.redirect(`${baseUrl}/dashboard`);
+    return await applySessionToResponse(redirectResponse, sessionData, request);
   } catch (err: unknown) {
     console.error("Failed to process OAuth callback:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.redirect(
-      `${baseUrl}/?error=auth_callback_failed&message=${encodeURIComponent(message)}`
-    );
+    return errorResponse("auth_callback_failed", message);
   }
 }
